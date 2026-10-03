@@ -1,0 +1,16 @@
+# Compilação e Build
+/target/
+*.class
+
+# Configurações do IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+*.factorypath
+.vscode/
+
+# Logs e arquivos temporários
+*.log
+.DS_Store
