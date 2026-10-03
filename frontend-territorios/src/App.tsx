@@ -1,3 +1,4 @@
+import { Login } from './Login';
 import { useState, useEffect } from 'react';
 import type { SyntheticEvent } from 'react';
 import { AxiosError } from 'axios';
@@ -15,10 +16,20 @@ import {
   Edit2,
   X,
   Settings,
-  ClipboardList
+  ClipboardList,
+  LogOut
 } from 'lucide-react';
 
 export default function App() {
+  const [autenticado, setAutenticado] = useState<boolean>(
+    () => localStorage.getItem('saas_acesso_liberado') === 'true'
+  );
+
+  const handleSair = () => {
+    localStorage.removeItem('saas_acesso_liberado');
+    setAutenticado(false);
+  };
+
   // Aba Ativa: 'operacoes' | 'gerenciamento'
   const [abaAtiva, setAbaAtiva] = useState<'operacoes' | 'gerenciamento'>('operacoes');
 
@@ -51,47 +62,33 @@ export default function App() {
   const [editUsuarioId, setEditUsuarioId] = useState('');
   const [editTerritorioId, setEditTerritorioId] = useState('');
 
+  // Função centralizada para carregar/recarregar dados
   const carregarDados = async () => {
     try {
-      const [resUsers, resTerritorios] = await Promise.all([
+      const [resUsers, resTerritorios, resRetiradas] = await Promise.all([
         api.get('/usuarios'),
         api.get('/territorios'),
+        api.get('/retiradas/busca'),
       ]);
       setUsuarios(resUsers.data);
       setTerritorios(resTerritorios.data);
-      await handleFiltrar();
+      setRetiradas(resRetiradas.data);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
     }
   };
 
+  // Carrega os dados sempre que estiver autenticado (inclusive logo após logar)
   useEffect(() => {
-    let ativo = true;
+    if (autenticado) {
+      carregarDados();
+    }
+  }, [autenticado]);
 
-    const inicializar = async () => {
-      try {
-        const [resUsers, resTerritorios, resRetiradas] = await Promise.all([
-          api.get('/usuarios'),
-          api.get('/territorios'),
-          api.get('/retiradas/busca'),
-        ]);
-
-        if (ativo) {
-          setUsuarios(resUsers.data);
-          setTerritorios(resTerritorios.data);
-          setRetiradas(resRetiradas.data);
-        }
-      } catch (err) {
-        console.error('Erro ao inicializar:', err);
-      }
-    };
-
-    inicializar();
-
-    return () => {
-      ativo = false;
-    };
-  }, []);
+  // Se não estiver logado, para a execução aqui e exibe a tela de Login
+  if (!autenticado) {
+    return <Login onLoginSucesso={() => setAutenticado(true)} />;
+  }
 
   // --- FILTROS ---
   const handleFiltrar = async (e?: SyntheticEvent) => {
@@ -123,15 +120,14 @@ export default function App() {
   };
 
   // --- CADASTROS ---
- const handleCadastrarUsuario = async (e: SyntheticEvent) => {
-  e.preventDefault();
-  // Agora valida apenas o nome obrigatoriamente
-  if (!novoUsuario.nome) return; 
-  
-  await api.post('/usuarios', novoUsuario);
-  setNovoUsuario({ nome: '', email: '' });
-  await carregarDados();
-};
+  const handleCadastrarUsuario = async (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (!novoUsuario.nome) return; 
+    
+    await api.post('/usuarios', novoUsuario);
+    setNovoUsuario({ nome: '', email: '' });
+    await carregarDados();
+  };
 
   const handleCadastrarTerritorio = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -267,26 +263,34 @@ export default function App() {
         {/* Cabeçalho e Navegação */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-700 pb-6">
           <h1 className="text-3xl font-bold text-indigo-400">Controle de Territórios</h1>
-          <div className="flex gap-2 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
+          
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
+              <button
+                onClick={() => setAbaAtiva('operacoes')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
+                  abaAtiva === 'operacoes' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <ClipboardList className="w-4 h-4" /> Operações
+              </button>
+              <button
+                onClick={() => setAbaAtiva('gerenciamento')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
+                  abaAtiva === 'gerenciamento' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Settings className="w-4 h-4" /> Gerenciamento
+              </button>
+            </div>
+
+            {/* BOTÃO SAIR */}
             <button
-              onClick={() => setAbaAtiva('operacoes')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
-                abaAtiva === 'operacoes'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
+              onClick={handleSair}
+              className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-rose-600/20 text-slate-400 hover:text-rose-400 border border-slate-700 rounded-lg transition text-sm font-medium"
+              title="Sair do sistema"
             >
-              <ClipboardList className="w-4 h-4" /> Operações
-            </button>
-            <button
-              onClick={() => setAbaAtiva('gerenciamento')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
-                abaAtiva === 'gerenciamento'
-                  ? 'bg-indigo-600 text-white shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Settings className="w-4 h-4" /> Gerenciamento
+              <LogOut className="w-4 h-4" /> Sair
             </button>
           </div>
         </div>
