@@ -1,9 +1,9 @@
-import { Login } from './Login';
-import { useState, useEffect } from 'react';
-import type { SyntheticEvent } from 'react';
-import { AxiosError } from 'axios';
-import { api } from './services/api';
-import type { Usuario, Territorio, RegistroRetirada } from './services/api';
+import { Login } from "./Login";
+import { useState, useEffect } from "react";
+import type { SyntheticEvent } from "react";
+import { AxiosError } from "axios";
+import { api } from "./services/api";
+import type { Usuario, Territorio, RegistroRetirada } from "./services/api";
 import {
   UserPlus,
   MapPin,
@@ -17,21 +17,23 @@ import {
   X,
   Settings,
   ClipboardList,
-  LogOut
-} from 'lucide-react';
+  LogOut,
+} from "lucide-react";
 
 export default function App() {
   const [autenticado, setAutenticado] = useState<boolean>(
-    () => localStorage.getItem('saas_acesso_liberado') === 'true'
+    () => localStorage.getItem("saas_acesso_liberado") === "true",
   );
 
   const handleSair = () => {
-    localStorage.removeItem('saas_acesso_liberado');
+    localStorage.removeItem("saas_acesso_liberado");
     setAutenticado(false);
   };
 
   // Aba Ativa: 'operacoes' | 'gerenciamento'
-  const [abaAtiva, setAbaAtiva] = useState<'operacoes' | 'gerenciamento'>('operacoes');
+  const [abaAtiva, setAbaAtiva] = useState<"operacoes" | "gerenciamento">(
+    "operacoes",
+  );
 
   // Dados principais
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -39,49 +41,58 @@ export default function App() {
   const [retiradas, setRetiradas] = useState<RegistroRetirada[]>([]);
 
   // Formulários de Cadastro
-  const [novoUsuario, setNovoUsuario] = useState({ nome: '', email: '' });
-  const [novoTerritorio, setNovoTerritorio] = useState({ nomeOuNumero: '' });
-  const [selectedUsuario, setSelectedUsuario] = useState('');
-  const [selectedTerritorio, setSelectedTerritorio] = useState('');
-  const [dataRetiradaCustom, setDataRetiradaCustom] = useState('');
+  const [novoUsuario, setNovoUsuario] = useState({ nome: "", email: "" });
+  const [novoTerritorio, setNovoTerritorio] = useState({ nomeOuNumero: "" });
+  const [selectedUsuario, setSelectedUsuario] = useState("");
+  const [selectedTerritorio, setSelectedTerritorio] = useState("");
+  const [dataRetiradaCustom, setDataRetiradaCustom] = useState("");
 
   // Filtros de busca
-  const [filtroNome, setFiltroNome] = useState('');
-  const [filtroTerritorio, setFiltroTerritorio] = useState('');
-  const [filtroData, setFiltroData] = useState('');
+  const [filtroNome, setFiltroNome] = useState("");
+  const [filtroTerritorio, setFiltroTerritorio] = useState("");
+  const [filtroData, setFiltroData] = useState("");
 
   // Modais de Edição
   const [usuarioEditando, setUsuarioEditando] = useState<Usuario | null>(null);
-  const [territorioEditando, setTerritorioEditando] = useState<Territorio | null>(null);
-  const [registroEditando, setRegistroEditando] = useState<RegistroRetirada | null>(null);
+  const [territorioEditando, setTerritorioEditando] =
+    useState<Territorio | null>(null);
+  const [registroEditando, setRegistroEditando] =
+    useState<RegistroRetirada | null>(null);
 
   // Campos temporários para modais
-  const [editNomeUsuario, setEditNomeUsuario] = useState('');
-  const [editEmailUsuario, setEditEmailUsuario] = useState('');
-  const [editNomeTerritorio, setEditNomeTerritorio] = useState('');
-  const [editUsuarioId, setEditUsuarioId] = useState('');
-  const [editTerritorioId, setEditTerritorioId] = useState('');
+  const [editNomeUsuario, setEditNomeUsuario] = useState("");
+  const [editEmailUsuario, setEditEmailUsuario] = useState("");
+  const [editNomeTerritorio, setEditNomeTerritorio] = useState("");
+  const [editUsuarioId, setEditUsuarioId] = useState("");
+  const [editTerritorioId, setEditTerritorioId] = useState("");
 
   // Função centralizada para carregar/recarregar dados
   const carregarDados = async () => {
     try {
       const [resUsers, resTerritorios, resRetiradas] = await Promise.all([
-        api.get('/usuarios'),
-        api.get('/territorios'),
-        api.get('/retiradas/busca'),
+        api.get("/usuarios"),
+        api.get("/territorios"),
+        api.get("/retiradas/busca"),
       ]);
       setUsuarios(resUsers.data);
       setTerritorios(resTerritorios.data);
       setRetiradas(resRetiradas.data);
     } catch (err) {
-      console.error('Erro ao carregar dados:', err);
+      console.error("Erro ao carregar dados:", err);
     }
   };
 
   // Carrega os dados sempre que estiver autenticado (inclusive logo após logar)
   useEffect(() => {
     if (autenticado) {
-      carregarDados();
+      const buscarDados = async () => {
+        try {
+          await carregarDados();
+        } catch (error_) {
+          console.error("Erro ao carregar os dados:", error_);
+        }
+      };
+      void buscarDados();
     }
   }, [autenticado]);
 
@@ -94,7 +105,7 @@ export default function App() {
   const handleFiltrar = async (e?: SyntheticEvent) => {
     if (e) e.preventDefault();
     try {
-      const response = await api.get('/retiradas/busca', {
+      const response = await api.get("/retiradas/busca", {
         params: {
           nome: filtroNome || undefined,
           territorioId: filtroTerritorio || undefined,
@@ -103,37 +114,37 @@ export default function App() {
       });
       setRetiradas(response.data);
     } catch (err) {
-      console.error('Erro ao buscar retiradas:', err);
+      console.error("Erro ao buscar retiradas:", err);
     }
   };
 
   const handleLimparFiltros = async () => {
-    setFiltroNome('');
-    setFiltroTerritorio('');
-    setFiltroData('');
+    setFiltroNome("");
+    setFiltroTerritorio("");
+    setFiltroData("");
     try {
-      const response = await api.get('/retiradas/busca');
+      const response = await api.get("/retiradas/busca");
       setRetiradas(response.data);
     } catch (err) {
-      console.error('Erro ao limpar filtros:', err);
+      console.error("Erro ao limpar filtros:", err);
     }
   };
 
   // --- CADASTROS ---
   const handleCadastrarUsuario = async (e: SyntheticEvent) => {
     e.preventDefault();
-    if (!novoUsuario.nome) return; 
-    
-    await api.post('/usuarios', novoUsuario);
-    setNovoUsuario({ nome: '', email: '' });
+    if (!novoUsuario.nome) return;
+
+    await api.post("/usuarios", novoUsuario);
+    setNovoUsuario({ nome: "", email: "" });
     await carregarDados();
   };
 
   const handleCadastrarTerritorio = async (e: SyntheticEvent) => {
     e.preventDefault();
     if (!novoTerritorio.nomeOuNumero) return;
-    await api.post('/territorios', novoTerritorio);
-    setNovoTerritorio({ nomeOuNumero: '' });
+    await api.post("/territorios", novoTerritorio);
+    setNovoTerritorio({ nomeOuNumero: "" });
     await carregarDados();
   };
 
@@ -147,36 +158,46 @@ export default function App() {
     });
 
     if (dataRetiradaCustom) {
-      params.append('dataRetirada', dataRetiradaCustom);
+      params.append("dataRetirada", dataRetiradaCustom);
     }
 
     await api.post(`/retiradas?${params.toString()}`);
-    setSelectedUsuario('');
-    setSelectedTerritorio('');
-    setDataRetiradaCustom('');
+    setSelectedUsuario("");
+    setSelectedTerritorio("");
+    setDataRetiradaCustom("");
     await carregarDados();
   };
 
   // --- EXCLUSÕES ---
   const handleDeletarUsuario = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este publicador? Todo o histórico associado também será removido.')) return;
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir este publicador? Todo o histórico associado também será removido.",
+      )
+    )
+      return;
     try {
       await api.delete(`/usuarios/${id}`);
       await carregarDados();
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
-      alert(error.response?.data?.message || 'Erro ao deletar publicador.');
+      alert(error.response?.data?.message || "Erro ao deletar publicador.");
     }
   };
 
   const handleDeletarTerritorio = async (id: number) => {
-    if (!confirm('Tem certeza que deseja excluir este território? Todo o histórico associado também será removido.')) return;
+    if (
+      !confirm(
+        "Tem certeza que deseja excluir este território? Todo o histórico associado também será removido.",
+      )
+    )
+      return;
     try {
       await api.delete(`/territorios/${id}`);
       await carregarDados();
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
-      alert(error.response?.data?.message || 'Erro ao deletar território.');
+      alert(error.response?.data?.message || "Erro ao deletar território.");
     }
   };
 
@@ -200,7 +221,7 @@ export default function App() {
       await carregarDados();
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
-      alert(error.response?.data?.message || 'Erro ao atualizar publicador.');
+      alert(error.response?.data?.message || "Erro ao atualizar publicador.");
     }
   };
 
@@ -221,7 +242,7 @@ export default function App() {
       await carregarDados();
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
-      alert(error.response?.data?.message || 'Erro ao atualizar território.');
+      alert(error.response?.data?.message || "Erro ao atualizar território.");
     }
   };
 
@@ -236,12 +257,14 @@ export default function App() {
     if (!registroEditando || !editUsuarioId || !editTerritorioId) return;
 
     try {
-      await api.put(`/retiradas/${registroEditando.id}?usuarioId=${editUsuarioId}&territorioId=${editTerritorioId}`);
+      await api.put(
+        `/retiradas/${registroEditando.id}?usuarioId=${editUsuarioId}&territorioId=${editTerritorioId}`,
+      );
       setRegistroEditando(null);
       await carregarDados();
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
-      alert(error.response?.data?.message || 'Erro ao atualizar registro.');
+      alert(error.response?.data?.message || "Erro ao atualizar registro.");
     }
   };
 
@@ -259,25 +282,30 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         {/* Cabeçalho e Navegação */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-700 pb-6">
-          <h1 className="text-3xl font-bold text-indigo-400">Controle de Territórios</h1>
-          
+          <h1 className="text-3xl font-bold text-indigo-400">
+            Controle de Territórios
+          </h1>
+
           <div className="flex items-center gap-4">
             <div className="flex gap-2 bg-slate-800 p-1.5 rounded-lg border border-slate-700">
               <button
-                onClick={() => setAbaAtiva('operacoes')}
+                onClick={() => setAbaAtiva("operacoes")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
-                  abaAtiva === 'operacoes' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                  abaAtiva === "operacoes"
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 <ClipboardList className="w-4 h-4" /> Operações
               </button>
               <button
-                onClick={() => setAbaAtiva('gerenciamento')}
+                onClick={() => setAbaAtiva("gerenciamento")}
                 className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
-                  abaAtiva === 'gerenciamento' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+                  abaAtiva === "gerenciamento"
+                    ? "bg-indigo-600 text-white shadow"
+                    : "text-slate-400 hover:text-slate-200"
                 }`}
               >
                 <Settings className="w-4 h-4" /> Gerenciamento
@@ -296,16 +324,24 @@ export default function App() {
         </div>
 
         {/* ABA 1: OPERAÇÕES (Dia a Dia) */}
-        {abaAtiva === 'operacoes' && (
+        {abaAtiva === "operacoes" && (
           <div className="space-y-8">
             {/* Registrar Retirada */}
-            <form onSubmit={handleRegistrarRetirada} className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4 max-w-2xl mx-auto">
+            <form
+              onSubmit={handleRegistrarRetirada}
+              className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-4 max-w-2xl mx-auto"
+            >
               <h2 className="text-xl font-semibold flex items-center gap-2 text-indigo-300">
                 <Clock className="w-5 h-5" /> Registrar Saída
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="selectedUsuario" className="block text-xs text-slate-400 mb-1">Publicador</label>
+                  <label
+                    htmlFor="selectedUsuario"
+                    className="block text-xs text-slate-400 mb-1"
+                  >
+                    Publicador
+                  </label>
                   <select
                     id="selectedUsuario"
                     className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none"
@@ -314,12 +350,19 @@ export default function App() {
                   >
                     <option value="">Selecione o Publicador</option>
                     {usuarios.map((u) => (
-                      <option key={u.id} value={u.id}>{u.nome}</option>
+                      <option key={u.id} value={u.id}>
+                        {u.nome}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="selectedTerritorio" className="block text-xs text-slate-400 mb-1">Território</label>
+                  <label
+                    htmlFor="selectedTerritorio"
+                    className="block text-xs text-slate-400 mb-1"
+                  >
+                    Território
+                  </label>
                   <select
                     id="selectedTerritorio"
                     className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none"
@@ -328,13 +371,18 @@ export default function App() {
                   >
                     <option value="">Selecione o Território</option>
                     {territorios.map((t) => (
-                      <option key={t.id} value={t.id}>{t.nomeOuNumero}</option>
+                      <option key={t.id} value={t.id}>
+                        {t.nomeOuNumero}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               <div>
-                <label htmlFor="dataRetiradaCustom" className="block text-xs text-slate-400 mb-1">
+                <label
+                  htmlFor="dataRetiradaCustom"
+                  className="block text-xs text-slate-400 mb-1"
+                >
                   Data de Saída (opcional - usa hoje se em branco)
                 </label>
                 <input
@@ -345,7 +393,10 @@ export default function App() {
                   onChange={(e) => setDataRetiradaCustom(e.target.value)}
                 />
               </div>
-              <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded font-medium transition">
+              <button
+                type="submit"
+                className="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded font-medium transition"
+              >
                 Registrar Saída
               </button>
             </form>
@@ -355,9 +406,17 @@ export default function App() {
               <h2 className="text-xl font-semibold flex items-center gap-2 text-indigo-300">
                 <Filter className="w-5 h-5" /> Filtrar Registros
               </h2>
-              <form onSubmit={handleFiltrar} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <form
+                onSubmit={handleFiltrar}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4"
+              >
                 <div>
-                  <label htmlFor="filtroNome" className="block text-xs text-slate-400 mb-1">Nome do Publicador</label>
+                  <label
+                    htmlFor="filtroNome"
+                    className="block text-xs text-slate-400 mb-1"
+                  >
+                    Nome do Publicador
+                  </label>
                   <input
                     id="filtroNome"
                     type="text"
@@ -368,7 +427,12 @@ export default function App() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="filtroTerritorio" className="block text-xs text-slate-400 mb-1">Território</label>
+                  <label
+                    htmlFor="filtroTerritorio"
+                    className="block text-xs text-slate-400 mb-1"
+                  >
+                    Território
+                  </label>
                   <select
                     id="filtroTerritorio"
                     className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
@@ -377,12 +441,19 @@ export default function App() {
                   >
                     <option value="">Todos</option>
                     {territorios.map((t) => (
-                      <option key={t.id} value={t.id}>{t.nomeOuNumero}</option>
+                      <option key={t.id} value={t.id}>
+                        {t.nomeOuNumero}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="filtroData" className="block text-xs text-slate-400 mb-1">Data Retirada</label>
+                  <label
+                    htmlFor="filtroData"
+                    className="block text-xs text-slate-400 mb-1"
+                  >
+                    Data Retirada
+                  </label>
                   <input
                     id="filtroData"
                     type="date"
@@ -431,10 +502,18 @@ export default function App() {
                       retiradas.map((r) => (
                         <tr key={r.id} className="hover:bg-slate-700/30">
                           <td className="p-4">{r.usuario?.nome}</td>
-                          <td className="p-4 font-medium">{r.territorio?.nomeOuNumero}</td>
-                          <td className="p-4 text-slate-400">{r.dataRetirada}</td>
-                          <td className="p-4 text-amber-400">{r.previsaoRenovacao}</td>
-                          <td className="p-4 text-rose-400">{r.entregaObrigatoria}</td>
+                          <td className="p-4 font-medium">
+                            {r.territorio?.nomeOuNumero}
+                          </td>
+                          <td className="p-4 text-slate-400">
+                            {r.dataRetirada}
+                          </td>
+                          <td className="p-4 text-amber-400">
+                            {r.previsaoRenovacao}
+                          </td>
+                          <td className="p-4 text-rose-400">
+                            {r.entregaObrigatoria}
+                          </td>
                           <td className="p-4 flex gap-2">
                             {!r.dataDevolucao ? (
                               <>
@@ -458,18 +537,24 @@ export default function App() {
                                   onClick={() => handleDevolver(r.id)}
                                   className="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1 rounded text-sm transition"
                                 >
-                                  <CheckCircle className="w-3.5 h-3.5" /> Devolver
+                                  <CheckCircle className="w-3.5 h-3.5" />{" "}
+                                  Devolver
                                 </button>
                               </>
                             ) : (
-                              <span className="text-slate-500 text-sm font-semibold">Devolvido</span>
+                              <span className="text-slate-500 text-sm font-semibold">
+                                Devolvido
+                              </span>
                             )}
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={6} className="p-4 text-center text-slate-500">
+                        <td
+                          colSpan={6}
+                          className="p-4 text-center text-slate-500"
+                        >
                           Nenhum registro encontrado.
                         </td>
                       </tr>
@@ -482,9 +567,8 @@ export default function App() {
         )}
 
         {/* ABA 2: GERENCIAMENTO (Publicadores & Territórios) */}
-        {abaAtiva === 'gerenciamento' && (
+        {abaAtiva === "gerenciamento" && (
           <div className="grid md:grid-cols-2 gap-8">
-            
             {/* Gestão de Publicadores */}
             <div className="bg-slate-800 p-6 rounded-lg border border-slate-700 space-y-6">
               <h2 className="text-xl font-semibold flex items-center gap-2 text-indigo-300">
@@ -496,25 +580,37 @@ export default function App() {
                   placeholder="Nome do Publicador"
                   className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
                   value={novoUsuario.nome}
-                  onChange={(e) => setNovoUsuario({ ...novoUsuario, nome: e.target.value })}
+                  onChange={(e) =>
+                    setNovoUsuario({ ...novoUsuario, nome: e.target.value })
+                  }
                 />
                 <input
                   type="email"
                   placeholder="E-mail"
                   className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
                   value={novoUsuario.email}
-                  onChange={(e) => setNovoUsuario({ ...novoUsuario, email: e.target.value })}
+                  onChange={(e) =>
+                    setNovoUsuario({ ...novoUsuario, email: e.target.value })
+                  }
                 />
-                <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-medium transition">
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-medium transition"
+                >
                   Cadastrar Publicador
                 </button>
               </form>
 
               <div className="pt-4 border-t border-slate-700 space-y-3">
-                <h3 className="text-md font-medium text-slate-300">Publicadores Cadastrados</h3>
+                <h3 className="text-md font-medium text-slate-300">
+                  Publicadores Cadastrados
+                </h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                   {usuarios.map((u) => (
-                    <div key={u.id} className="flex justify-between items-center bg-slate-700/50 p-3 rounded border border-slate-600">
+                    <div
+                      key={u.id}
+                      className="flex justify-between items-center bg-slate-700/50 p-3 rounded border border-slate-600"
+                    >
                       <div>
                         <p className="font-medium text-slate-200">{u.nome}</p>
                         <p className="text-xs text-slate-400">{u.email}</p>
@@ -554,19 +650,34 @@ export default function App() {
                   placeholder="Nome ou Número do Território"
                   className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
                   value={novoTerritorio.nomeOuNumero}
-                  onChange={(e) => setNovoTerritorio({ ...novoTerritorio, nomeOuNumero: e.target.value })}
+                  onChange={(e) =>
+                    setNovoTerritorio({
+                      ...novoTerritorio,
+                      nomeOuNumero: e.target.value,
+                    })
+                  }
                 />
-                <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-medium transition">
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded font-medium transition"
+                >
                   Cadastrar Território
                 </button>
               </form>
 
               <div className="pt-4 border-t border-slate-700 space-y-3">
-                <h3 className="text-md font-medium text-slate-300">Territórios Cadastrados</h3>
+                <h3 className="text-md font-medium text-slate-300">
+                  Territórios Cadastrados
+                </h3>
                 <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
                   {territorios.map((t) => (
-                    <div key={t.id} className="flex justify-between items-center bg-slate-700/50 p-3 rounded border border-slate-600">
-                      <span className="font-medium text-slate-200">{t.nomeOuNumero}</span>
+                    <div
+                      key={t.id}
+                      className="flex justify-between items-center bg-slate-700/50 p-3 rounded border border-slate-600"
+                    >
+                      <span className="font-medium text-slate-200">
+                        {t.nomeOuNumero}
+                      </span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleAbrirEditTerritorio(t)}
@@ -577,7 +688,9 @@ export default function App() {
                         </button>
                         {t.id !== undefined && (
                           <button
-                            onClick={() => handleDeletarTerritorio(t.id as number)}
+                            onClick={() =>
+                              handleDeletarTerritorio(t.id as number)
+                            }
                             className="p-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded transition"
                             title="Deletar Território"
                           >
@@ -590,10 +703,8 @@ export default function App() {
                 </div>
               </div>
             </div>
-
           </div>
         )}
-
       </div>
 
       {/* MODAL: EDITAR PUBLICADOR */}
@@ -604,13 +715,21 @@ export default function App() {
               <h3 className="text-lg font-semibold text-indigo-300 flex items-center gap-2">
                 <Edit2 className="w-5 h-5" /> Editar Publicador
               </h3>
-              <button onClick={() => setUsuarioEditando(null)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setUsuarioEditando(null)}
+                className="text-slate-400 hover:text-slate-200"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSalvarEditUsuario} className="space-y-4">
               <div>
-                <label htmlFor="editNomeUsuario" className="block text-sm text-slate-400 mb-1">Nome</label>
+                <label
+                  htmlFor="editNomeUsuario"
+                  className="block text-sm text-slate-400 mb-1"
+                >
+                  Nome
+                </label>
                 <input
                   id="editNomeUsuario"
                   type="text"
@@ -620,7 +739,12 @@ export default function App() {
                 />
               </div>
               <div>
-                <label htmlFor="editEmailUsuario" className="block text-sm text-slate-400 mb-1">E-mail</label>
+                <label
+                  htmlFor="editEmailUsuario"
+                  className="block text-sm text-slate-400 mb-1"
+                >
+                  E-mail
+                </label>
                 <input
                   id="editEmailUsuario"
                   type="email"
@@ -657,13 +781,21 @@ export default function App() {
               <h3 className="text-lg font-semibold text-indigo-300 flex items-center gap-2">
                 <Edit2 className="w-5 h-5" /> Editar Território
               </h3>
-              <button onClick={() => setTerritorioEditando(null)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setTerritorioEditando(null)}
+                className="text-slate-400 hover:text-slate-200"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSalvarEditTerritorio} className="space-y-4">
               <div>
-                <label htmlFor="editNomeTerritorio" className="block text-sm text-slate-400 mb-1">Nome ou Número</label>
+                <label
+                  htmlFor="editNomeTerritorio"
+                  className="block text-sm text-slate-400 mb-1"
+                >
+                  Nome ou Número
+                </label>
                 <input
                   id="editNomeTerritorio"
                   type="text"
@@ -700,13 +832,21 @@ export default function App() {
               <h3 className="text-lg font-semibold text-indigo-300 flex items-center gap-2">
                 <Edit2 className="w-5 h-5" /> Corrigir Registro de Saída
               </h3>
-              <button onClick={() => setRegistroEditando(null)} className="text-slate-400 hover:text-slate-200">
+              <button
+                onClick={() => setRegistroEditando(null)}
+                className="text-slate-400 hover:text-slate-200"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSalvarEditRegistro} className="space-y-4">
               <div>
-                <label htmlFor="editUsuarioId" className="block text-sm text-slate-400 mb-1">Publicador</label>
+                <label
+                  htmlFor="editUsuarioId"
+                  className="block text-sm text-slate-400 mb-1"
+                >
+                  Publicador
+                </label>
                 <select
                   id="editUsuarioId"
                   className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
@@ -714,12 +854,19 @@ export default function App() {
                   onChange={(e) => setEditUsuarioId(e.target.value)}
                 >
                   {usuarios.map((u) => (
-                    <option key={u.id} value={u.id}>{u.nome}</option>
+                    <option key={u.id} value={u.id}>
+                      {u.nome}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="editTerritorioId" className="block text-sm text-slate-400 mb-1">Território</label>
+                <label
+                  htmlFor="editTerritorioId"
+                  className="block text-sm text-slate-400 mb-1"
+                >
+                  Território
+                </label>
                 <select
                   id="editTerritorioId"
                   className="w-full p-2 rounded bg-slate-700 text-white border border-slate-600 focus:outline-none focus:border-indigo-500"
@@ -727,7 +874,9 @@ export default function App() {
                   onChange={(e) => setEditTerritorioId(e.target.value)}
                 >
                   {territorios.map((t) => (
-                    <option key={t.id} value={t.id}>{t.nomeOuNumero}</option>
+                    <option key={t.id} value={t.id}>
+                      {t.nomeOuNumero}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -750,7 +899,6 @@ export default function App() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

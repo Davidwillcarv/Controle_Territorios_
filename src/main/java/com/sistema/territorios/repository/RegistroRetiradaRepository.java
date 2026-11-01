@@ -13,11 +13,11 @@ import java.util.List;
 public interface RegistroRetiradaRepository extends JpaRepository<RegistroRetirada, Long> {
 
         @Query("SELECT r FROM RegistroRetirada r " +
-                        "WHERE (:nome IS NULL OR LOWER(r.usuario.nome) LIKE LOWER(CONCAT('%', :nome, '%'))) " +
-                        "AND (:territorioId IS NULL OR r.territorio.id = :territorioId) " +
-                        "AND (:dataRetirada IS NULL OR r.dataRetirada = :dataRetirada)")
+                "WHERE (:nome IS NULL OR LOWER(r.usuario.nome) LIKE LOWER(CONCAT('%', CAST(:nome AS string), '%'))) " +
+                "AND (:territorioId IS NULL OR r.territorio.id = :territorioId) " +
+                "AND (:dataRetirada IS NULL OR r.dataRetirada = :dataRetirada)")
         List<RegistroRetirada> buscarComFiltros(
-                        @Param("nome") String nome,
-                        @Param("territorioId") Long territorioId,
-                        @Param("dataRetirada") LocalDate dataRetirada);
+                @Param("nome") String nome,
+                @Param("territorioId") Long territorioId,
+                @Param("dataRetirada") LocalDate dataRetirada);
 }

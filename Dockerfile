@@ -1,12 +1,11 @@
-# Etapa 1: Build do Jar com Maven
-FROM maven:3.9-eclipse-temurin-17 AS build
+# Estágio de Build
+FROM maven:3.8.4-openjdk-17 AS build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+COPY . .
 RUN mvn clean package -DskipTests
 
-# Etapa 2: Imagem final para execução
-FROM eclipse-temurin:17-jre
+# Estágio de Execução
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
